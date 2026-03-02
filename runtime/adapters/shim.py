@@ -109,6 +109,14 @@ class ShimAdapterBase:
         provider_result_path = paths[f"providers/{self.id}.json"]
         run_id = f"{self.id}-{uuid.uuid4().hex[:12]}"
 
+        # Allow adapter to override environment (e.g., for cc_env support)
+        env = _sanitize_env()
+        get_env_override = getattr(self, "_get_env_override", None)
+        if callable(get_env_override):
+            env_override = get_env_override(input_task)
+            if env_override is not None:
+                env = env_override
+
         stdout_file = stdout_path.open("w", encoding="utf-8")
         stderr_file = stderr_path.open("w", encoding="utf-8")
         process = subprocess.Popen(
@@ -118,7 +126,7 @@ class ShimAdapterBase:
             stderr=stderr_file,
             text=True,
             start_new_session=True,
-            env=_sanitize_env(),
+            env=env,
         )
         self._runs[run_id] = ShimRunHandle(
             process=process,
