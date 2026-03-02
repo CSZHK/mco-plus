@@ -97,6 +97,7 @@ class ClaudeAdapter(ShimAdapterBase):
         """Return environment variables to inject for this task.
 
         Called by shim.run() to create the subprocess environment.
+        Returns only the cc_env variables to be merged with sanitized base env.
         """
         raw_permissions = input_task.metadata.get("provider_permissions")
         if not isinstance(raw_permissions, dict):
@@ -107,13 +108,7 @@ class ClaudeAdapter(ShimAdapterBase):
             return None
 
         env_vars = self._resolve_cc_env(cc_env)
-        if not env_vars:
-            return None
-
-        # Merge with current environment
-        merged = os.environ.copy()
-        merged.update(env_vars)
-        return merged
+        return env_vars if env_vars else None
 
     def _build_command_for_record(self) -> List[str]:
         return ["claude", "-p", "--permission-mode", "plan", "--model", "<model>", "--output-format", "text", "<prompt>"]

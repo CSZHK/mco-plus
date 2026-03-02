@@ -43,6 +43,9 @@ class ShimRunHandle:
 
 _ENV_VARS_TO_STRIP = (
     "CLAUDECODE",
+    "CLAUDE_CODE_SUBAGENT_MODEL",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS",
+    "CLAUDE_CODE_ENTRYPOINT",
 )
 
 
@@ -115,7 +118,8 @@ class ShimAdapterBase:
         if callable(get_env_override):
             env_override = get_env_override(input_task)
             if env_override is not None:
-                env = env_override
+                # Merge with sanitized env (don't replace, to keep CLAUDECODE stripped)
+                env.update(env_override)
 
         stdout_file = stdout_path.open("w", encoding="utf-8")
         stderr_file = stderr_path.open("w", encoding="utf-8")
